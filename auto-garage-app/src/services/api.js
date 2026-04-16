@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://auto-garage-backend.onrender.com/api';
 
 const handleResponse = async (response) => {
   if (!response.ok) {
