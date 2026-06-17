@@ -1,10 +1,20 @@
-const API_URL = 'https://auto-garage-backend.onrender.com/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://auto-garage-backend.onrender.com/api';
 
 const handleResponse = async (response) => {
+  const isJson = (response.headers.get('content-type') || '').includes('application/json');
+
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Something went wrong');
+    if (isJson) {
+      const error = await response.json();
+      throw new Error(error.message || 'Something went wrong');
+    }
+    throw new Error(`Request failed (${response.status})`);
   }
+
+  if (!isJson) {
+    throw new Error('Server returned an invalid response');
+  }
+
   return response.json();
 };
 
