@@ -11,6 +11,7 @@ const Invoices = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [viewInvoice, setViewInvoice] = useState(null)
+  const [pdfInvoice, setPdfInvoice] = useState(null)
   const [editingInvoice, setEditingInvoice] = useState(null)
   const [formData, setFormData] = useState({
     customerName: '',
@@ -166,30 +167,50 @@ const Invoices = () => {
   }
 
   const exportToPDF = async (invoice) => {
-    const element = document.getElementById(`invoice-${invoice.id}`)
-    if (!element) return
+    try {
+      let element = document.getElementById(`invoice-${invoice._id}`)
+      if (!element) {
+        setPdfInvoice(invoice)
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+        element = document.getElementById(`invoice-${invoice._id}`)
+      }
 
-    const canvas = await html2canvas(element, { scale: 2 })
-    const imgData = canvas.toDataURL('image/png')
-    
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    const imgWidth = 210
-    const pageHeight = 295
-    const imgHeight = canvas.height * imgWidth / canvas.width
-    let heightLeft = imgHeight
-    let position = 0
+      if (!element) {
+        throw new Error('Invoice preview not found')
+      }
 
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-    heightLeft -= pageHeight
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true })
+      const imgData = canvas.toDataURL('image/png')
 
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight
-      pdf.addPage()
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const imgWidth = 210
+      const pageHeight = 295
+      const imgHeight = canvas.height * imgWidth / canvas.width
+      let heightLeft = imgHeight
+      let position = 0
+
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
       heightLeft -= pageHeight
-    }
 
-    pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`)
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      const customerSlug = (invoice.customerName || 'Customer')
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+
+      pdf.save(`Invoice-${invoice.invoiceNumber}-${customerSlug}.pdf`)
+    } catch (err) {
+      console.error('PDF export failed:', err)
+      alert('Failed to download invoice PDF. Please try again.')
+    } finally {
+      setPdfInvoice(null)
+    }
   }
 
   const filteredInvoices = invoices.filter(invoice =>
@@ -206,10 +227,10 @@ const Invoices = () => {
             <p style={{ fontSize: '1.25rem', fontWeight: 600 }}>{invoice.invoiceNumber}</p>
           </div>
           <div className="invoice-company">
-            <h2>Auto Garage</h2>
-            <p>123 Garage Street</p>
-            <p>City, State 12345</p>
-            <p>Phone: (123) 456-7890</p>
+            <h2>Raees Auto Garage</h2>
+            <p>Kanadia Road </p>
+            <p>Indore, Madhya Pradesh 452016</p>
+            <p>Phone: 9827217874</p>
           </div>
         </div>
 
@@ -573,6 +594,13 @@ const Invoices = () => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Hidden invoice for PDF export from table row */}
+      {pdfInvoice && (
+        <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '800px' }}>
+          <InvoiceTemplate invoice={pdfInvoice} />
         </div>
       )}
     </div>
