@@ -36,7 +36,14 @@ function App() {
 
   // Protected Route wrapper
   const ProtectedRoute = ({ children }) => {
-    if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>
+    if (loading) {
+      return (
+        <div className="app-loading">
+          <div className="app-loading-spinner" />
+          <p>Loading Auto Garage...</p>
+        </div>
+      )
+    }
     return user ? children : <Navigate to="/login" replace />
   }
 

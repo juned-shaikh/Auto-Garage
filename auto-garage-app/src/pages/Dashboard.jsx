@@ -76,14 +76,22 @@ const Dashboard = () => {
   return (
     <div>
       <div className="page-header">
-        <h1>Dashboard</h1>
+        <div>
+          <h1>Dashboard</h1>
+          <p>Overview of your garage performance</p>
+        </div>
       </div>
 
-      {loading && <div className="card" style={{ textAlign: 'center', padding: '40px' }}>Loading dashboard data...</div>}
-      
+      {loading && (
+        <div className="card empty-state">
+          <div className="app-loading-spinner" style={{ margin: '0 auto 16px' }} />
+          Loading dashboard data...
+        </div>
+      )}
+
       {error && (
-        <div className="card" style={{ borderLeft: '4px solid #d32f2f', background: '#ffebee' }}>
-          <div style={{ color: '#d32f2f' }}>{error}</div>
+        <div className="card alert-banner alert-banner-error">
+          {error}
         </div>
       )}
 
@@ -135,11 +143,12 @@ const Dashboard = () => {
 
       {/* Low Stock Alert */}
       {stats.lowStockItems > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid #f57c00' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f57c00' }}>
-            <TrendingDown size={20} />
-            <span><strong>{stats.lowStockItems}</strong> parts are running low on stock. <a href="/parts" style={{ color: '#f57c00', textDecoration: 'underline' }}>View Inventory</a></span>
-          </div>
+        <div className="card alert-banner alert-banner-warning">
+          <TrendingDown size={20} />
+          <span>
+            <strong>{stats.lowStockItems}</strong> parts are running low on stock.{' '}
+            <a href="/parts" style={{ color: 'inherit', fontWeight: 600 }}>View inventory →</a>
+          </span>
         </div>
       )}
 

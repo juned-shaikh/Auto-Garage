@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2, FileText, Download, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, Download, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import { api } from '../services/api'
+import PageLoader from '../components/PageLoader'
 
 const Invoices = () => {
   const [invoices, setInvoices] = useState([])
@@ -26,6 +27,8 @@ const Invoices = () => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -33,6 +36,7 @@ const Invoices = () => {
 
   const fetchData = async () => {
     try {
+      setLoading(true)
       const [invoicesRes, customersRes, partsRes] = await Promise.all([
         api.getInvoices(),
         api.getCustomers(),
@@ -43,8 +47,25 @@ const Invoices = () => {
       setParts(partsRes)
     } catch (err) {
       console.error('Error fetching data:', err)
+      alert('Failed to load invoices. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
+
+  const buildInvoiceItems = (items) =>
+    items.map((item) => {
+      const entry = {
+        type: item.type,
+        name: item.name,
+        quantity: parseInt(item.quantity, 10),
+        price: parseFloat(item.price),
+      }
+      if (item.type === 'part' && item.partId) {
+        entry.partId = item.partId
+      }
+      return entry
+    })
 
   const calculateTotal = (items) => {
     return items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
@@ -53,31 +74,29 @@ const Invoices = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const newInvoice = {
-      customerName: formData.customerName,
-      customerPhone: formData.customerPhone,
+      customerName: formData.customerName.trim(),
+      customerPhone: formData.customerPhone.trim(),
       date: formData.date,
       dueDate: formData.dueDate,
-      items: formData.items.map(item => ({
-        type: item.type,
-        name: item.name,
-        quantity: parseInt(item.quantity),
-        price: parseFloat(item.price)
-      })),
+      items: buildInvoiceItems(formData.items),
       notes: formData.notes,
       status: formData.status,
       total: calculateTotal(formData.items)
     }
 
     try {
+      setSubmitting(true)
       if (editingInvoice) {
         await api.updateInvoice(editingInvoice._id, newInvoice)
       } else {
         await api.createInvoice(newInvoice)
       }
-      fetchData()
+      await fetchData()
       closeModal()
     } catch (err) {
       alert('Error saving invoice: ' + err.message)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -291,7 +310,10 @@ const Invoices = () => {
   return (
     <div>
       <div className="page-header">
-        <h1>Invoices</h1>
+        <div>
+          <h1>Invoices</h1>
+          <p>Create, view, and download invoices</p>
+        </div>
         <button className="btn btn-primary" onClick={() => openModal()}>
           <Plus size={18} />
           Create Invoice
@@ -299,6 +321,10 @@ const Invoices = () => {
       </div>
 
       <div className="card">
+        {loading ? (
+          <PageLoader message="Loading invoices..." />
+        ) : (
+        <>
         <div className="search-bar">
           <Search size={20} color="#666" />
           <input
@@ -355,7 +381,7 @@ const Invoices = () => {
             ))}
             {filteredInvoices.length === 0 && (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>
+                <td colSpan="7" className="empty-state">
                   No invoices found. Create your first invoice.
                 </td>
               </tr>
@@ -384,6 +410,8 @@ const Invoices = () => {
               <ChevronRight size={16} />
             </button>
           </div>
+        )}
+        </>
         )}
       </div>
 
@@ -565,8 +593,15 @@ const Invoices = () => {
                   <button type="button" className="btn btn-secondary" onClick={closeModal}>
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary">
-                    {editingInvoice ? 'Update Invoice' : 'Create Invoice'}
+                  <button type="submit" className="btn btn-primary" disabled={submitting}>
+                    {submitting ? (
+                      <>
+                        <span className="btn-spinner" />
+                        Saving...
+                      </>
+                    ) : (
+                      editingInvoice ? 'Update Invoice' : 'Create Invoice'
+                    )}
                   </button>
                 </div>
               </div>

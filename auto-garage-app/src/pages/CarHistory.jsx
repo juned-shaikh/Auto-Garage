@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Search, Edit2, Trash2, Car, TrendingUp, DollarSign, ChevronLeft, ChevronRight } from 'lucide-react'
 import { api } from '../services/api'
+import PageLoader from '../components/PageLoader'
 
 const CarHistory = () => {
   const [cars, setCars] = useState([])
@@ -21,7 +22,7 @@ const CarHistory = () => {
     notes: ''
   })
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -137,7 +138,10 @@ const CarHistory = () => {
   return (
     <div>
       <div className="page-header">
-        <h1>Car Buy/Sell History</h1>
+        <div>
+          <h1>Car Buy/Sell History</h1>
+          <p>Track vehicle purchases and sales</p>
+        </div>
         <button className="btn btn-primary" onClick={() => openModal()}>
           <Plus size={18} />
           Add Transaction
@@ -178,6 +182,10 @@ const CarHistory = () => {
       </div>
 
       <div className="card">
+        {loading ? (
+          <PageLoader message="Loading car transactions..." />
+        ) : (
+        <>
         <div className="search-bar">
           <Search size={20} color="#666" />
           <input
@@ -275,6 +283,8 @@ const CarHistory = () => {
               <ChevronRight size={16} />
             </button>
           </div>
+        )}
+        </>
         )}
       </div>
 

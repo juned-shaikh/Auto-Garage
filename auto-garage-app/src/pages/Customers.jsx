@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Search, Edit2, Trash2, User, Phone, Mail, MapPin, Car, FileText, Wrench, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { api } from '../services/api'
+import PageLoader from '../components/PageLoader'
 
 const Customers = () => {
   const [customers, setCustomers] = useState([])
@@ -29,7 +30,7 @@ const Customers = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchCustomers()
@@ -245,7 +246,10 @@ const Customers = () => {
   return (
     <div>
       <div className="page-header">
-        <h1>Customer Management</h1>
+        <div>
+          <h1>Customer Management</h1>
+          <p>View and manage your customer database</p>
+        </div>
         <button className="btn btn-primary" onClick={() => openModal()}>
           <Plus size={18} />
           Add Customer
@@ -253,6 +257,10 @@ const Customers = () => {
       </div>
 
       <div className="card">
+        {loading ? (
+          <PageLoader message="Loading customers..." />
+        ) : (
+        <>
         <div className="search-bar">
           <Search size={20} color="#666" />
           <input
@@ -354,6 +362,8 @@ const Customers = () => {
               <ChevronRight size={16} />
             </button>
           </div>
+        )}
+        </>
         )}
       </div>
 

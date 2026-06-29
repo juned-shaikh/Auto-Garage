@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Search, Edit2, Trash2, Package, AlertTriangle } from 'lucide-react'
 import { api } from '../services/api'
+import PageLoader from '../components/PageLoader'
 
 const PartsInventory = () => {
   const [parts, setParts] = useState([])
@@ -19,7 +20,7 @@ const PartsInventory = () => {
   })
 
   const categories = ['Engine', 'Brakes', 'Electrical', 'Body', 'Suspension', 'Transmission', 'Other']
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchParts()
@@ -120,7 +121,10 @@ const PartsInventory = () => {
   return (
     <div>
       <div className="page-header">
-        <h1>Parts Inventory</h1>
+        <div>
+          <h1>Parts Inventory</h1>
+          <p>Manage stock, pricing, and low-stock alerts</p>
+        </div>
         <button className="btn btn-primary" onClick={() => openModal()}>
           <Plus size={18} />
           Add Part
@@ -137,6 +141,10 @@ const PartsInventory = () => {
       )}
 
       <div className="card">
+        {loading ? (
+          <PageLoader message="Loading parts inventory..." />
+        ) : (
+        <>
         <div className="search-bar">
           <Search size={20} color="#666" />
           <input
@@ -206,6 +214,8 @@ const PartsInventory = () => {
             )}
           </tbody>
         </table>
+        </>
+        )}
       </div>
 
       {isModalOpen && (
