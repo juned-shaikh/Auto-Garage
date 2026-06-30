@@ -1,4 +1,4 @@
-const API_URL = 'https://auto-garage-backend.onrender.com/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 // Returns auth headers if a token is stored
 const authHeaders = () => {
