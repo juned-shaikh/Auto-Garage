@@ -9,7 +9,9 @@ lerna-debug.log*
 
 node_modules
 .env
+.env.development
 .env.*
+!.env.production
 !.env.example
 dist
 dist-ssr
