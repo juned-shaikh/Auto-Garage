@@ -5,7 +5,7 @@ import { ArrowLeft, KeyRound } from 'lucide-react'
 
 const ResetPassword = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   })
@@ -29,7 +29,7 @@ const ResetPassword = () => {
     }
 
     if (formData.newPassword.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError('New password must be at least 6 characters')
       return
     }
 
@@ -37,13 +37,13 @@ const ResetPassword = () => {
 
     try {
       await api.resetPassword({
-        email: formData.email,
-        newPassword: formData.newPassword
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
       })
-      setSuccess('Password reset successful! Redirecting to login...')
-      setTimeout(() => navigate('/login'), 2000)
+      setSuccess('Password changed successfully! Redirecting...')
+      setTimeout(() => navigate('/'), 2000)
     } catch (err) {
-      setError(err.message || 'Failed to reset password')
+      setError(err.message || 'Failed to change password')
     } finally {
       setLoading(false)
     }
@@ -56,9 +56,9 @@ const ResetPassword = () => {
           <div className="auth-brand-logo">
             <KeyRound size={28} color="#fff" />
           </div>
-          <h1>Reset Password</h1>
+          <h1>Change Password</h1>
           <p>
-            Enter your registered email and choose a new password to regain access to your account.
+            Enter your current password and choose a new one to update your account security.
           </p>
         </div>
       </div>
@@ -69,8 +69,8 @@ const ResetPassword = () => {
             <KeyRound size={26} color="#2563eb" />
           </div>
           <div className="auth-card-header">
-            <h2>New password</h2>
-            <p>Enter your email and new password below</p>
+            <h2>Change password</h2>
+            <p>You must be logged in to change your password</p>
           </div>
 
           {error && <div className="auth-alert auth-alert-error">{error}</div>}
@@ -78,14 +78,14 @@ const ResetPassword = () => {
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-group">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="currentPassword">Current Password</label>
               <input
-                id="email"
-                type="email"
-                name="email"
+                id="currentPassword"
+                type="password"
+                name="currentPassword"
                 className="form-control"
-                placeholder="you@garage.com"
-                value={formData.email}
+                placeholder="••••••••"
+                value={formData.currentPassword}
                 onChange={handleChange}
                 required
               />
@@ -107,7 +107,7 @@ const ResetPassword = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">Confirm New Password</label>
               <input
                 id="confirmPassword"
                 type="password"
@@ -121,14 +121,14 @@ const ResetPassword = () => {
             </div>
 
             <button type="submit" disabled={loading} className="btn btn-primary auth-submit">
-              {loading ? 'Resetting...' : 'Reset Password'}
+              {loading ? 'Saving...' : 'Change Password'}
             </button>
           </form>
 
           <div className="auth-footer">
-            <Link to="/login" className="auth-back">
+            <Link to="/" className="auth-back">
               <ArrowLeft size={16} />
-              Back to login
+              Back to dashboard
             </Link>
           </div>
         </div>

@@ -51,7 +51,6 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />} />
-        <Route path="/reset-password" element={user ? <Navigate to="/" replace /> : <ResetPassword />} />
         <Route path="/" element={
           <ProtectedRoute>
             <Layout user={user} onLogout={handleLogout} />
@@ -62,6 +61,7 @@ function App() {
           <Route path="cars" element={<CarHistory />} />
           <Route path="customers" element={<Customers />} />
           <Route path="invoices" element={<Invoices />} />
+          <Route path="reset-password" element={<ResetPassword />} />
         </Route>
         <Route path="*" element={<Navigate to={user ? "/" : "/login"} replace />} />
       </Routes>

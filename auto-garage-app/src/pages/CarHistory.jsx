@@ -88,16 +88,15 @@ const CarHistory = () => {
     if (car) {
       setEditingCar(car)
       setFormData({
-        make: car.make,
-        model: car.model,
-        year: car.year.toString(),
-        vin: car.vin,
-        type: car.type,
-        buyPrice: car.buyPrice.toString(),
-        sellPrice: car.sellPrice ? car.sellPrice.toString() : '',
-        date: car.date,
-        customer: car.customer,
-        notes: car.notes
+        make: car.make || '',
+        model: car.model || '',
+        year: car.year ? car.year.toString() : '',
+        vin: car.vin || '',
+        type: car.type || 'buy',
+        buyPrice: car.buyPrice != null ? car.buyPrice.toString() : '',
+        sellPrice: car.sellPrice != null && car.sellPrice > 0 ? car.sellPrice.toString() : '',        date: car.date ? new Date(car.date).toISOString().split('T')[0] : '',
+        customer: car.customer || '',
+        notes: car.notes || ''
       })
     } else {
       setEditingCar(null)
@@ -123,10 +122,10 @@ const CarHistory = () => {
   }
 
   const filteredCars = cars.filter(car => {
-    const matchesSearch = car.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         car.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         car.vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         car.customer.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = (car.make || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (car.model || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (car.vin || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (car.customer || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFilter = filter === 'all' || car.type === filter
     return matchesSearch && matchesFilter
   })
@@ -236,7 +235,7 @@ const CarHistory = () => {
                 </td>
                 <td>{car.year} {car.make} {car.model}</td>
                 <td>{car.vin}</td>
-                <td>₹{car.buyPrice.toLocaleString()}</td>
+                <td>₹{(car.buyPrice || 0).toLocaleString()}</td>
                 <td>{car.sellPrice ? `₹${car.sellPrice.toLocaleString()}` : '-'}</td>
                 <td style={{ color: car.profit > 0 ? '#388e3c' : car.profit < 0 ? '#d32f2f' : '#666' }}>
                   {car.profit ? `₹${car.profit.toLocaleString()}` : '-'}
@@ -346,7 +345,11 @@ const CarHistory = () => {
                 <select
                   className="form-control"
                   value={formData.type}
-                  onChange={e => setFormData({...formData, type: e.target.value})}
+                  onChange={e => setFormData({
+                    ...formData,
+                    type: e.target.value,
+                    sellPrice: e.target.value === 'buy' ? '' : formData.sellPrice
+                  })}
                   required
                 >
                   <option value="buy">Buy (Purchase)</option>

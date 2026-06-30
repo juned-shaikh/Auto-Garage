@@ -1,118 +1,95 @@
-const API_URL = import.meta.env.VITE_API_URL || 'https://auto-garage-backend.onrender.com/api';
+const API_URL = 'https://auto-garage-backend.onrender.com/api';
+
+// Returns auth headers if a token is stored
+const authHeaders = () => {
+  const token = localStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
 
 const handleResponse = async (response) => {
-  const isJson = (response.headers.get('content-type') || '').includes('application/json');
-
+  if (response.status === 401) {
+    // Token expired or invalid — clear session and redirect to login
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    throw new Error('Session expired. Please log in again.');
+  }
   if (!response.ok) {
-    if (isJson) {
-      const error = await response.json();
-      throw new Error(error.message || 'Something went wrong');
-    }
-    throw new Error(`Request failed (${response.status})`);
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || 'Something went wrong');
   }
-
-  if (!isJson) {
-    throw new Error('Server returned an invalid response');
-  }
-
   return response.json();
 };
 
+// Shorthand helpers
+const get = (path) =>
+  fetch(`${API_URL}${path}`, {
+    headers: { ...authHeaders() },
+  }).then(handleResponse);
+
+const post = (path, data) =>
+  fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(data),
+  }).then(handleResponse);
+
+const put = (path, data) =>
+  fetch(`${API_URL}${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(data),
+  }).then(handleResponse);
+
+const del = (path) =>
+  fetch(`${API_URL}${path}`, {
+    method: 'DELETE',
+    headers: { ...authHeaders() },
+  }).then(handleResponse);
+
 export const api = {
   // Parts API
-  getParts: () => fetch(`${API_URL}/parts`).then(handleResponse),
-  getPart: (id) => fetch(`${API_URL}/parts/${id}`).then(handleResponse),
-  createPart: (data) => fetch(`${API_URL}/parts`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updatePart: (id, data) => fetch(`${API_URL}/parts/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deletePart: (id) => fetch(`${API_URL}/parts/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getLowStockParts: () => fetch(`${API_URL}/parts/low-stock/all`).then(handleResponse),
+  getParts:        ()           => get('/parts'),
+  getPart:         (id)         => get(`/parts/${id}`),
+  createPart:      (data)       => post('/parts', data),
+  updatePart:      (id, data)   => put(`/parts/${id}`, data),
+  deletePart:      (id)         => del(`/parts/${id}`),
+  getLowStockParts: ()          => get('/parts/low-stock/all'),
 
   // Cars API
-  getCars: () => fetch(`${API_URL}/cars`).then(handleResponse),
-  getCar: (id) => fetch(`${API_URL}/cars/${id}`).then(handleResponse),
-  createCar: (data) => fetch(`${API_URL}/cars`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateCar: (id, data) => fetch(`${API_URL}/cars/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteCar: (id) => fetch(`${API_URL}/cars/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getCarStats: () => fetch(`${API_URL}/cars/stats/overview`).then(handleResponse),
+  getCars:         ()           => get('/cars'),
+  getCar:          (id)         => get(`/cars/${id}`),
+  createCar:       (data)       => post('/cars', data),
+  updateCar:       (id, data)   => put(`/cars/${id}`, data),
+  deleteCar:       (id)         => del(`/cars/${id}`),
+  getCarStats:     ()           => get('/cars/stats/overview'),
 
   // Customers API
-  getCustomers: () => fetch(`${API_URL}/customers`).then(handleResponse),
-  getCustomer: (id) => fetch(`${API_URL}/customers/${id}`).then(handleResponse),
-  createCustomer: (data) => fetch(`${API_URL}/customers`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateCustomer: (id, data) => fetch(`${API_URL}/customers/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteCustomer: (id) => fetch(`${API_URL}/customers/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
+  getCustomers:    ()           => get('/customers'),
+  getCustomer:     (id)         => get(`/customers/${id}`),
+  createCustomer:  (data)       => post('/customers', data),
+  updateCustomer:  (id, data)   => put(`/customers/${id}`, data),
+  deleteCustomer:  (id)         => del(`/customers/${id}`),
 
   // Invoices API
-  getInvoices: () => fetch(`${API_URL}/invoices`).then(handleResponse),
-  getInvoice: (id) => fetch(`${API_URL}/invoices/${id}`).then(handleResponse),
-  createInvoice: (data) => fetch(`${API_URL}/invoices`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  updateInvoice: (id, data) => fetch(`${API_URL}/invoices/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  deleteInvoice: (id) => fetch(`${API_URL}/invoices/${id}`, {
-    method: 'DELETE'
-  }).then(handleResponse),
-  getInvoicesByCustomer: (customerId) => fetch(`${API_URL}/invoices/customer/${customerId}`).then(handleResponse),
+  getInvoices:            ()              => get('/invoices'),
+  getInvoice:             (id)            => get(`/invoices/${id}`),
+  createInvoice:          (data)          => post('/invoices', data),
+  updateInvoice:          (id, data)      => put(`/invoices/${id}`, data),
+  deleteInvoice:          (id)            => del(`/invoices/${id}`),
+  getInvoicesByCustomer:  (customerId)    => get(`/invoices/customer/${customerId}`),
 
-  // Auth API
-  login: (data) => fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  register: (data) => fetch(`${API_URL}/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  getCurrentUser: () => fetch(`${API_URL}/auth/me`, {
-    headers: { 
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    }
-  }).then(handleResponse),
-  resetPassword: (data) => fetch(`${API_URL}/auth/reset-password`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }).then(handleResponse),
-  getDashboardStats: () => fetch(`${API_URL}/dashboard/stats`).then(handleResponse),
-  getRecentTransactions: (limit = 5) => fetch(`${API_URL}/dashboard/transactions?limit=${limit}`).then(handleResponse),
-  getMonthlySales: (year) => fetch(`${API_URL}/dashboard/monthly-sales${year ? `?year=${year}` : ''}`).then(handleResponse),
-  getInventoryByCategory: () => fetch(`${API_URL}/dashboard/inventory-category`).then(handleResponse),
+  // Auth API (no token needed — public routes)
+  login:    (data) => post('/auth/login', data),
+  register: (data) => post('/auth/register', data),
+  getCurrentUser: () => get('/auth/me'),
+
+  // Change password (must be logged in — sends token automatically)
+  resetPassword: (data) => post('/auth/reset-password', data),
+
+  // Dashboard API
+  getDashboardStats:      ()              => get('/dashboard/stats'),
+  getRecentTransactions:  (limit = 5)     => get(`/dashboard/transactions?limit=${limit}`),
+  getMonthlySales:        (year)          => get(`/dashboard/monthly-sales${year ? `?year=${year}` : ''}`),
+  getInventoryByCategory: ()              => get('/dashboard/inventory-category'),
 };
