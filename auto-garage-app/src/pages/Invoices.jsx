@@ -495,7 +495,9 @@ const Invoices = () => {
                       >
                         <option value="">Select Part</option>
                         {parts.map(p => (
-                          <option key={p._id} value={p._id}>{p.name} - ₹{p.sellPrice}</option>
+                          <option key={p._id} value={p._id} disabled={p.quantity === 0}>
+                            {p.name} — ₹{p.sellPrice} (Stock: {p.quantity})
+                          </option>
                         ))}
                       </select>
                     ) : (
@@ -518,6 +520,9 @@ const Invoices = () => {
                       onChange={e => updateItem(index, 'quantity', e.target.value)}
                       required
                       min="1"
+                      max={item.type === 'part' && item.partId
+                        ? (parts.find(p => p._id === item.partId)?.quantity ?? undefined)
+                        : undefined}
                     />
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
